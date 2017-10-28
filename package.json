@@ -1,0 +1,22 @@
+{
+  "name": "quik-project",
+  "version": "0.0.1",
+  "description": "Sample project generated with Quik",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "quik",
+    "build": "quik --bundle index.js --output dist/index.bundle.js --production"
+  },
+  "dependencies": {
+    "flow-bin": "^0.57.3",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.10.0",
+    "eslint-config-satya164": "^1.0.1",
+    "prettier": "^1.7.4",
+    "quik": "^1.0.1"
+  }
+}

@@ -1,8 +1,9 @@
 {
   "name": "quik-project",
   "version": "0.0.1",
-  "description": "Sample project generated with Quik",
+  "description": "Simple 2D shooter game where you shoot evil emojis",
   "license": "MIT",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "start": "quik",

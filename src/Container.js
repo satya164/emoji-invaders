@@ -3,6 +3,8 @@
 import * as React from 'react';
 
 type Props = {
+  height: number,
+  width: number,
   children: React.Node,
 };
 
@@ -28,8 +30,8 @@ export default class Container extends React.Component<Props> {
             top: '50%',
             left: '50%',
             transform: 'translateX(-50%) translateY(-50%)',
-            height: '22em',
-            width: '52em',
+            height: `${this.props.height + 2}em`,
+            width: `${this.props.width + 2}em`,
             border: '1px double currentColor',
           }}
         >
@@ -37,8 +39,8 @@ export default class Container extends React.Component<Props> {
             style={{
               position: 'relative',
               margin: '1em',
-              height: '20em',
-              width: '50em',
+              height: `${this.props.height}em`,
+              width: `${this.props.width}em`,
             }}
           >
             {this.props.children}

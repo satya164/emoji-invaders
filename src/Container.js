@@ -32,7 +32,8 @@ export default class Container extends React.Component<Props> {
             transform: 'translateX(-50%) translateY(-50%)',
             height: `${this.props.height + 2}em`,
             width: `${this.props.width + 2}em`,
-            border: '1px double currentColor',
+            border: '4px double currentColor',
+            cursor: 'none',
           }}
         >
           <div

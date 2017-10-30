@@ -15,6 +15,11 @@ type Layout = {|
   +width: number,
 |};
 
+type Player = {|
+  +lives: number,
+  +position: Position,
+|};
+
 type Bullet = {|
   +id: number,
   +position: Position,
@@ -38,9 +43,8 @@ type Character = {|
 type Props = {};
 
 type State = {|
-  lives: number,
   score: number,
-  player: { position: Position },
+  player: Player,
   bullets: Bullet[],
   monsters: Monster[],
   layout: Layout,
@@ -64,9 +68,9 @@ const SCREEN_WIDTH = 30;
 
 export default class Invaders extends React.Component<Props, State> {
   state = {
-    lives: 3,
     score: 0,
     player: {
+      lives: 3,
       position: {
         x: SCREEN_WIDTH / 2,
         y: SCREEN_HEIGHT - 1,
@@ -108,7 +112,10 @@ export default class Invaders extends React.Component<Props, State> {
       }
 
       return {
-        player: { position: { x, y: state.player.position.y } },
+        player: {
+          lives: state.player.lives,
+          position: { x, y: state.player.position.y },
+        },
       };
     });
 
@@ -132,17 +139,14 @@ export default class Invaders extends React.Component<Props, State> {
         7,
         Math.max(
           0,
-          state.lives -
+          state.player.lives -
             state.monsters.reduce((damage, monster) => {
               /* $FlowFixMe */
               const character: Character = characters.find(
                 c => c.type === monster.type
               );
 
-              if (
-                monster.position.x === player.position.x &&
-                monster.position.y === player.position.y
-              ) {
+              if (this._isPlayerHit(player, monster)) {
                 return damage + character.damage > 0 ? 1 : -1;
               } else if (
                 Math.abs(monster.position.y - state.layout.height) <= 1
@@ -158,8 +162,7 @@ export default class Invaders extends React.Component<Props, State> {
       const bullets = state.bullets
         .filter(
           bullet =>
-            bullet.position.y > 0 &&
-            !state.monsters.some(monster => this._isHit(monster, bullet))
+            !state.monsters.some(monster => this._isMonsterHit(monster, bullet))
         )
         .map(bullet => ({
           id: bullet.id,
@@ -167,7 +170,8 @@ export default class Invaders extends React.Component<Props, State> {
             x: bullet.position.x,
             y: bullet.position.y - 1,
           },
-        }));
+        }))
+        .filter(bullet => this._isInsideField(bullet, state.layout));
 
       if (count % 2 === 0) {
         bullets.push({
@@ -180,10 +184,7 @@ export default class Invaders extends React.Component<Props, State> {
       }
 
       const monsters = state.monsters
-        .filter(
-          monster =>
-            monster.position.y < state.layout.height - 1 && monster.lives
-        )
+        .filter(monster => monster.lives && !this._isPlayerHit(player, monster))
         .map(monster => {
           /* $FlowFixMe */
           const character: Character = characters.find(
@@ -192,7 +193,9 @@ export default class Invaders extends React.Component<Props, State> {
           return {
             id: monster.id,
             type: monster.type,
-            lives: state.bullets.some(bullet => this._isHit(monster, bullet))
+            lives: state.bullets.some(bullet =>
+              this._isMonsterHit(monster, bullet)
+            )
               ? monster.lives - 1
               : monster.lives,
             position: {
@@ -200,7 +203,8 @@ export default class Invaders extends React.Component<Props, State> {
               y: monster.position.y + character.delta.y,
             },
           };
-        });
+        })
+        .filter(monster => this._isInsideField(monster, state.layout));
 
       if (count % 8 === 0) {
         Array.from({
@@ -233,17 +237,32 @@ export default class Invaders extends React.Component<Props, State> {
         return sum + character.points;
       }, state.score);
 
-      return { lives, bullets, monsters, score };
+      return {
+        bullets,
+        monsters,
+        score,
+        player: { lives, position: player.position },
+      };
     });
 
-  _isHit = (monster: Monster, bullet: Bullet) =>
-    monster.position.x === bullet.position.x &&
+  _isMonsterHit = (monster: Monster, bullet: Bullet) =>
+    Math.ceil(monster.position.x) === bullet.position.x &&
     Math.abs(monster.position.y - bullet.position.y) <= 1;
 
-  render() {
-    const { lives, player, bullets, monsters } = this.state;
+  _isPlayerHit = (player: Player, monster: Monster) =>
+    Math.ceil(monster.position.x) === player.position.x &&
+    Math.ceil(monster.position.y) === player.position.y;
 
-    if (lives === 0) {
+  _isInsideField = ({ position }: Monster | Bullet, layout: Layout) =>
+    position.y >= 0 &&
+    position.x >= 0 &&
+    position.y < layout.height &&
+    position.x < layout.width;
+
+  render() {
+    const { player, bullets, monsters } = this.state;
+
+    if (player.lives <= 0) {
       return (
         <Container
           height={this.state.layout.height}
@@ -285,8 +304,11 @@ export default class Invaders extends React.Component<Props, State> {
         <Text x={0} y={0}>
           SCORE: {this.state.score}
         </Text>
-        <Text x={this.state.layout.width - Math.ceil(this.state.lives)} y={0}>
-          {Array.from({ length: Math.ceil(this.state.lives) })
+        <Text
+          x={this.state.layout.width - Math.ceil(this.state.player.lives)}
+          y={0}
+        >
+          {Array.from({ length: Math.ceil(this.state.player.lives) })
             .map(() => '❤')
             .join('')}
         </Text>
